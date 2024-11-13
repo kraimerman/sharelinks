@@ -192,6 +192,7 @@ function App() {
                 onAddComment={(comment) => handleAddComment(link.id, comment)}
                 onEditLink={(updates) => handleEditLink(link.id, updates)}
                 isAuthenticated={!!user}
+                currentUser={user?.displayName || null}
               />
             ))}
           </div>

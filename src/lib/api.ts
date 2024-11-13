@@ -50,10 +50,10 @@ export const updateLink = async (linkId: string, updates: { title?: string; url?
   await updateDoc(linkRef, updates);
 };
 
-export const updateVotes = async (linkId: string, type: 'upvote' | 'downvote', value: number): Promise<void> => {
+export const updateVotes = async (linkId: string, type: 'upvote' | 'downvote', newValue: number): Promise<void> => {
   const linkRef = doc(db, 'links', linkId);
   await updateDoc(linkRef, {
-    [type === 'upvote' ? 'upvotes' : 'downvotes']: value
+    [type === 'upvote' ? 'upvotes' : 'downvotes']: newValue
   });
 };
 

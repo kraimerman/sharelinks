@@ -22,6 +22,7 @@ interface LinkCardProps {
   onAddComment: (comment: { text: string }) => void;
   onEditLink: (updates: { title: string; url: string; description: string }) => void;
   isAuthenticated: boolean;
+  currentUser?: string | null; // Add currentUser prop
 }
 
 export default function LinkCard({
@@ -38,6 +39,7 @@ export default function LinkCard({
   onAddComment,
   onEditLink,
   isAuthenticated,
+  currentUser,
 }: LinkCardProps) {
   const [localUpvotes, setLocalUpvotes] = useState(upvotes);
   const [localDownvotes, setLocalDownvotes] = useState(downvotes);
@@ -48,6 +50,8 @@ export default function LinkCard({
   const [editedTitle, setEditedTitle] = useState(title);
   const [editedUrl, setEditedUrl] = useState(url);
   const [editedDescription, setEditedDescription] = useState(description);
+
+  const canEdit = isAuthenticated && currentUser === author;
 
   const handleVote = async (type: 'upvote' | 'downvote') => {
     if (!isAuthenticated) return;
@@ -77,7 +81,7 @@ export default function LinkCard({
   };
 
   const handleSaveEdit = async () => {
-    if (!editedTitle.trim() || !editedUrl.trim() || !isAuthenticated) return;
+    if (!editedTitle.trim() || !editedUrl.trim() || !isAuthenticated || !canEdit) return;
 
     try {
       await onEditLink({
@@ -168,7 +172,7 @@ export default function LinkCard({
                     </span>
                   </h2>
                 </div>
-                {isAuthenticated ? (
+                {canEdit && (
                   <button
                     onClick={() => setIsEditing(true)}
                     className="p-1 text-gray-500 hover:text-blue-600 rounded-full hover:bg-gray-100"
@@ -176,7 +180,7 @@ export default function LinkCard({
                   >
                     <Edit2 size={16} />
                   </button>
-                ) : null}
+                )}
                 <a
                   href={url}
                   target="_blank"
