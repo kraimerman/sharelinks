@@ -63,14 +63,14 @@ function App() {
     }
   };
 
-  const handleVoteUpdate = async (linkId: string, newVotes: number) => {
+  const handleVoteUpdate = async (linkId: string, type: 'upvote' | 'downvote', newValue: number) => {
     if (!user) {
       setError('Please sign in to vote.');
       return;
     }
 
     try {
-      await updateVotes(linkId, newVotes);
+      await updateVotes(linkId, type, newValue);
       await loadLinks();
     } catch (err) {
       console.error('Error updating votes:', err);
@@ -188,9 +188,7 @@ function App() {
               <LinkCard
                 key={link.id}
                 {...link}
-                initialVotes={link.votes}
-                initialComments={link.comments}
-                onVoteUpdate={(newVotes) => handleVoteUpdate(link.id, newVotes)}
+                onVoteUpdate={(type, newValue) => handleVoteUpdate(link.id, type, newValue)}
                 onAddComment={(comment) => handleAddComment(link.id, comment)}
                 onEditLink={(updates) => handleEditLink(link.id, updates)}
                 isAuthenticated={!!user}

@@ -15,9 +15,10 @@ interface LinkCardProps {
   description: string;
   author: string;
   timestamp: Date;
-  initialVotes: number;
-  initialComments: Comment[];
-  onVoteUpdate: (newVotes: number) => void;
+  upvotes: number;
+  downvotes: number;
+  comments: Comment[];
+  onVoteUpdate: (type: 'upvote' | 'downvote', newValue: number) => void;
   onAddComment: (comment: { text: string }) => void;
   onEditLink: (updates: { title: string; url: string; description: string }) => void;
   isAuthenticated: boolean;
@@ -30,14 +31,16 @@ export default function LinkCard({
   description,
   author,
   timestamp,
-  initialVotes,
-  initialComments,
+  upvotes = 0,
+  downvotes = 0,
+  comments = [],
   onVoteUpdate,
   onAddComment,
   onEditLink,
   isAuthenticated,
 }: LinkCardProps) {
-  const [votes, setVotes] = useState(initialVotes);
+  const [localUpvotes, setLocalUpvotes] = useState(upvotes);
+  const [localDownvotes, setLocalDownvotes] = useState(downvotes);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,11 +49,18 @@ export default function LinkCard({
   const [editedUrl, setEditedUrl] = useState(url);
   const [editedDescription, setEditedDescription] = useState(description);
 
-  const handleVote = async (increment: boolean) => {
+  const handleVote = async (type: 'upvote' | 'downvote') => {
     if (!isAuthenticated) return;
-    const newVotes = increment ? votes + 1 : votes - 1;
-    setVotes(newVotes);
-    await onVoteUpdate(newVotes);
+
+    if (type === 'upvote') {
+      const newUpvotes = localUpvotes + 1;
+      setLocalUpvotes(newUpvotes);
+      await onVoteUpdate('upvote', newUpvotes);
+    } else {
+      const newDownvotes = localDownvotes + 1;
+      setLocalDownvotes(newDownvotes);
+      await onVoteUpdate('downvote', newDownvotes);
+    }
   };
 
   const handleAddComment = async (e: React.FormEvent) => {
@@ -88,7 +98,6 @@ export default function LinkCard({
     setIsEditing(false);
   };
 
-  // Format URL for display
   const displayUrl = url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
 
   return (
@@ -190,37 +199,42 @@ export default function LinkCard({
       {!isEditing && (
         <>
           <div className="flex items-center gap-6 mt-4">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleVote(true)}
-                className={`p-1 rounded-full transition-colors ${
-                  isAuthenticated
-                    ? 'hover:bg-gray-100 cursor-pointer'
-                    : 'cursor-not-allowed opacity-50'
-                }`}
-                title={isAuthenticated ? 'Vote up' : 'Sign in to vote'}
-              >
-                <ThumbsUp size={18} className="text-gray-600" />
-              </button>
-              <span className="text-gray-600 font-medium">{votes}</span>
-              <button
-                onClick={() => handleVote(false)}
-                className={`p-1 rounded-full transition-colors ${
-                  isAuthenticated
-                    ? 'hover:bg-gray-100 cursor-pointer'
-                    : 'cursor-not-allowed opacity-50'
-                }`}
-                title={isAuthenticated ? 'Vote down' : 'Sign in to vote'}
-              >
-                <ThumbsDown size={18} className="text-gray-600" />
-              </button>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleVote('upvote')}
+                  className={`p-1 rounded-full transition-colors ${
+                    isAuthenticated
+                      ? 'hover:bg-gray-100 cursor-pointer'
+                      : 'cursor-not-allowed opacity-50'
+                  }`}
+                  title={isAuthenticated ? 'Upvote' : 'Sign in to vote'}
+                >
+                  <ThumbsUp size={18} className="text-green-600" />
+                </button>
+                <span className="text-green-600 font-medium">{localUpvotes}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleVote('downvote')}
+                  className={`p-1 rounded-full transition-colors ${
+                    isAuthenticated
+                      ? 'hover:bg-gray-100 cursor-pointer'
+                      : 'cursor-not-allowed opacity-50'
+                  }`}
+                  title={isAuthenticated ? 'Downvote' : 'Sign in to vote'}
+                >
+                  <ThumbsDown size={18} className="text-red-600" />
+                </button>
+                <span className="text-red-600 font-medium">{localDownvotes}</span>
+              </div>
             </div>
             <button
               onClick={() => setShowComments(!showComments)}
               className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
             >
               <MessageCircle size={18} />
-              <span>{initialComments.length} comments</span>
+              <span>{comments.length} comments</span>
             </button>
           </div>
 
@@ -254,7 +268,7 @@ export default function LinkCard({
               )}
 
               <div className="space-y-4">
-                {initialComments.map((comment) => (
+                {comments.map((comment) => (
                   <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
                     <div className="flex justify-between items-start">
                       <span className="font-medium text-gray-800">{comment.author}</span>

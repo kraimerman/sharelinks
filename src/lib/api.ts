@@ -8,7 +8,8 @@ export interface Link {
   description: string;
   author: string;
   timestamp: Date;
-  votes: number;
+  upvotes: number;
+  downvotes: number;
   comments: Comment[];
 }
 
@@ -33,10 +34,11 @@ export const fetchLinks = async (): Promise<Link[]> => {
   })) as Link[];
 };
 
-export const addLink = async (link: Omit<Link, 'id' | 'votes' | 'comments' | 'timestamp'>): Promise<string> => {
+export const addLink = async (link: Omit<Link, 'id' | 'upvotes' | 'downvotes' | 'comments' | 'timestamp'>): Promise<string> => {
   const docRef = await addDoc(collection(db, 'links'), {
     ...link,
-    votes: 0,
+    upvotes: 0,
+    downvotes: 0,
     comments: [],
     timestamp: Timestamp.now()
   });
@@ -48,10 +50,10 @@ export const updateLink = async (linkId: string, updates: { title?: string; url?
   await updateDoc(linkRef, updates);
 };
 
-export const updateVotes = async (linkId: string, newVotes: number): Promise<void> => {
+export const updateVotes = async (linkId: string, type: 'upvote' | 'downvote', value: number): Promise<void> => {
   const linkRef = doc(db, 'links', linkId);
   await updateDoc(linkRef, {
-    votes: newVotes
+    [type === 'upvote' ? 'upvotes' : 'downvotes']: value
   });
 };
 
